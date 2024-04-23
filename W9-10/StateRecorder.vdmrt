@@ -10,6 +10,7 @@ instance variables
     public ctl_torque : real; -- sensor angle read
 
     public str : seq of char;
+    public s : seq of (seq of char);
 
 operations
     public StateRecorder: () ==> StateRecorder
@@ -23,8 +24,14 @@ operations
         ctl_torque := 0;
 
         str := "";
+        s := ["","","","",""];
+        s(1) := s(1) ^ "Current Real time of the Simulation: ";
+        s(2) := s(2) ^ "Env q: ";
+        s(3) := s(3) ^ "Env q vel: ";
+        s(4) := s(4) ^ "Ctl q: ";
+        s(5) := s(5) ^ "Ctl q vel: ";
     );
-
+   
     public CtlUpdate: (seq of real) ==> ()
     CtlUpdate(vals) == duration(0) (
         ctl_q := vals(1);
@@ -56,11 +63,25 @@ operations
         --str := str ^ VDMUtil`val2seq_of_char[real](ctl_torque);
 
     );
+    public rec2: () ==> ()
+    rec2() == duration(0) (
+        env_q := MySystem`arm.GetCurrentPosition();
+        env_q_vel := MySystem`arm.GetVelocity();
+        env_q_acc := MySystem`arm.GetCurrentAcceleration();
+        env_torque := MySystem`arm.GetCurrentMotorTorque();
+
+        s(1) := s(1) ^ VDMUtil`val2seq_of_char[real](time / 1E9) ^", ";
+        s(2) := s(2) ^ VDMUtil`val2seq_of_char[real](env_q)^", ";
+        s(3) := s(3) ^ VDMUtil`val2seq_of_char[real](env_q_vel)^", ";
+        s(4) := s(4) ^ VDMUtil`val2seq_of_char[real](ctl_q)^", ";
+        s(5) := s(5) ^ VDMUtil`val2seq_of_char[real](ctl_q_vel)^", ";
+
+    );
         
 thread
-    periodic(1E9, 0, 0, 0)(rec); -- calling each second
+    periodic(1E9, 0, 0, 0)(rec2); -- calling each second
 
 sync
-    mutex(CtlUpdate,rec);
+    mutex(CtlUpdate,rec2);
 
 end StateRecorder

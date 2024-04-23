@@ -27,8 +27,13 @@ operations
     start(MySystem`recorder);
 
     MySystem`arm.isFinished();
-    io.echo(MySystem`recorder.str);
-    
+    io.print(MySystem`recorder.s(1));
+    io.print("\n"^MySystem`recorder.s(2));
+    io.print("\n"^MySystem`recorder.s(3));
+    io.print("\n"^MySystem`recorder.s(4));
+    io.print("\n"^MySystem`recorder.s(5));
+
+    return true;
     );
 
 end World 
