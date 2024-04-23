@@ -22,7 +22,7 @@ class MotorActuator
         );
 
     thread
-        periodic(1E9, 0, 1E8, 0)(UpdateMotorTorque) -- calling each seonc
+        periodic(1E9, 0, 0, 0)(UpdateMotorTorque) -- calling each seonc
         --periodic(periode,jitter,delay,offset)(operationName);
     sync
         mutex(GetMotorTorque)

@@ -77,7 +77,7 @@ operations
         
         prevError := errorPos;
         --MySystem`Motor.PassState([ctl_q,ctl_q_vel,ctl_motorTorque]);
-        
+        MySystem`recorder.CtlUpdate([ctl_q,ctl_q_vel,ctl_motorTorque]);
     );
 
 sync 

@@ -13,20 +13,20 @@ class MovementSensor
 
         -- velocity parts
         public GetVelocity: () ==> ()
-        GetVelocity() == duration(0) (
+        GetVelocity() == duration(1E8) (
             snr_q_vel := MySystem`arm.GetVelocity();
         );
 
         public UpdateVelocity: () ==> ()
-        UpdateVelocity() == duration(0) (
+        UpdateVelocity() == duration(1E8) (
             GetVelocity();
             MySystem`controller.UpdateCurrentVelocty(snr_q_vel);
         );
 
         thread
-            periodic(2E9, 0, 0, 0)(UpdateVelocity);
+            periodic(1E9, 0, 0, 0)(UpdateVelocity);
 
         sync
-            mutex(GetVelocity, UpdateVelocity);
+            
             
 end MovementSensor

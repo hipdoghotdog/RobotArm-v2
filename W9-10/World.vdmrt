@@ -24,9 +24,10 @@ operations
     start(MySystem`movementSensor);
     start(MySystem`controller);
     start(MySystem`arm);
+    start(MySystem`recorder);
 
     MySystem`arm.isFinished();
-    io.echo(MySystem`arm.str);
+    io.echo(MySystem`recorder.str);
     
     );
 

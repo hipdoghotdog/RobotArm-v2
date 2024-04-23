@@ -40,7 +40,7 @@ operations
         data_history:= data_history ^ [mk_("Env q vel", env_q_vel)];
         data_history:= data_history ^ [mk_("Env q acc", env_q_acc)];
     );
-    rec: () ==> ()
+    public rec: () ==> ()
     rec() == duration(0) (
         
         str := str ^ "\nCurrent Real time of the Simulation: ";
@@ -56,18 +56,22 @@ operations
 
     -- Motor actuator
     public GetMotorTorque: real ==> ()
-    GetMotorTorque(torque) == duration(1E8) (
+    GetMotorTorque(torque) == duration(0) (
         env_motorTorque := torque;
+    );
+    public GetCurrentMotorTorque: () ==> real
+    GetCurrentMotorTorque() == duration(0) (
+        return env_motorTorque;
     );
 
     -- Angle sensor
     public GetCurrentPosition: () ==> real
-    GetCurrentPosition() == duration(1E8) (
+    GetCurrentPosition() == duration(0) (
         return env_q;
     );
 
     public SetCurrentPosition: real ==> ()
-    SetCurrentPosition(pos) == duration(1E8) (
+    SetCurrentPosition(pos) == duration(0) (
         env_q := pos;
     );
 
@@ -102,7 +106,7 @@ operations
             env_q_acc := env_motorTorque / I; -- Assuming uniform mass distribution arm length meter. a = t / i
             env_q_vel := env_q_vel + env_q_acc * delta;
             env_q := env_q + env_q_vel * delta;
-            rec();
+            --rec();
     );
 
 thread
