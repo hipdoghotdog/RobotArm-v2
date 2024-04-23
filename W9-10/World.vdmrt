@@ -1,0 +1,33 @@
+class World
+
+instance variables
+    io: IO := new IO();
+    current_time : real := 0;
+
+operations
+    public UpdateTimeStamp : () ==> ()
+    UpdateTimeStamp () == duration(0) (
+        current_time := time / 1E9;
+    );
+
+    public Scenario1 : () ==> (bool)
+    Scenario1() == (
+    MySystem`arm.SetCurrentPosition(1.5); -- Near upper safety limit
+    MySystem`controller.SetTargetAngle(1); -- Trying to move outside safety zone
+    MySystem`controller.SetKp(0.15);
+    MySystem`controller.SetKd(0.2);
+    MySystem`arm.set_sim_time(36E9); -- time 15 sek
+    
+   
+    start(MySystem`angleSensor);
+    start(MySystem`motorActuator);
+    start(MySystem`movementSensor);
+    start(MySystem`controller);
+    start(MySystem`arm);
+
+    MySystem`arm.isFinished();
+    io.echo(MySystem`arm.str);
+    
+    );
+
+end World 
