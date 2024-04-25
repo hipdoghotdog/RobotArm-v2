@@ -16,7 +16,33 @@ operations
     MySystem`controller.SetTargetAngle(1); -- Trying to move outside safety zone
     MySystem`controller.SetKp(0.15);
     MySystem`controller.SetKd(0.2);
-    MySystem`arm.set_sim_time(36E9); -- time 15 sek
+    MySystem`arm.set_sim_time(99E9); -- time 15 sek
+    
+   
+    start(MySystem`angleSensor);
+    start(MySystem`motorActuator);
+    start(MySystem`movementSensor);
+    start(MySystem`controller);
+    start(MySystem`arm);
+    start(MySystem`recorder);
+
+    MySystem`arm.isFinished();
+    io.print(MySystem`recorder.s(1));
+    io.print("\n"^MySystem`recorder.s(2));
+    io.print("\n"^MySystem`recorder.s(3));
+    io.print("\n"^MySystem`recorder.s(4));
+    io.print("\n"^MySystem`recorder.s(5));
+
+    return true;
+    );
+
+    public Scenario2 : () ==> (bool)
+    Scenario2() == (
+    MySystem`arm.SetCurrentPosition(0.0); -- Near upper safety limit
+    MySystem`controller.SetTargetAngle(0.5); -- Trying to move outside safety zone
+    MySystem`controller.SetKp(0.1);
+    MySystem`controller.SetKd(0.15);
+    MySystem`arm.set_sim_time(99E9); -- time 15 sek
     
    
     start(MySystem`angleSensor);
