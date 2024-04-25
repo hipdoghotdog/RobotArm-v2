@@ -5,10 +5,11 @@ types
 
     -- environment events
     public Event = <SensorFailure> | <ActuatorFailure>;
-    public Env_user_events = <RepositiongArm> | <SwitchingEndEffector>;
+    public Env_user_events = <RepositiongArm> | <SwitchingEndEffector> | <TargetAngle> | <ShutdownCommand>;
 
 values 
     public r: real = 0.8; -- arm length
+    public I: real = 2 * r * r; -- inertia
 
 instance variables
     public env_q : real; -- angle of joint. radians
@@ -16,7 +17,6 @@ instance variables
     public env_q_acc: real; -- acceleration. rad/s^2
     public env_motorTorque: real; -- motor torque in Nm
     public last_time: real;
-    public inertia: real;
 
     --simulation time
     public final_sim_time: real;
@@ -28,23 +28,30 @@ operations
         env_q_vel := 0; 
         env_q_acc := 0; 
         env_motorTorque := 0;
-        inertia := 0;
 
         last_time := 0;
         final_sim_time := 0;
        
     );
 
-    -- interia cal
-    public Inertia: () ==> 
-    Inertia()
-   
+    -- events
+    --public AddEvent : real * Event * int ==> ()
+    --AddEvent(t, e, d) == duration(0) (
+    --    events := events ^ [mk_(t,e,d)];
+    --);
+
+    --public CreateEvent : () ==> ()
+    --reateEvent() == (
+    --    if 
+    --);
+
 
     -- Motor actuator
     public GetMotorTorque: real ==> ()
     GetMotorTorque(torque) == duration(0) (
         env_motorTorque := torque;
     );
+
     public GetCurrentMotorTorque: () ==> real
     GetCurrentMotorTorque() == duration(0) (
         return env_motorTorque;
@@ -80,6 +87,10 @@ operations
     public isFinished: () ==> ()
     isFinished() == skip;
 
+
+
+
+
     -- step function
     public Step: () ==> ()
     Step() == duration(0) (
@@ -97,6 +108,7 @@ operations
 
 thread
     periodic(1E9,0,0,0)(Step);
+    --periodic(1E9, 0, 0, 0)(CreateEvent);
 
 sync
     mutex (GetCurrentPosition);
