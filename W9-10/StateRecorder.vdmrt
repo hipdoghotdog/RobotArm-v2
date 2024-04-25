@@ -9,7 +9,6 @@ instance variables
     public ctl_q_vel : real; -- sensor angle read
     public ctl_torque : real; -- sensor angle read
 
-    
     public s : seq of (seq of char);
 
 operations
