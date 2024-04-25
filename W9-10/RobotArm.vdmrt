@@ -16,8 +16,7 @@ instance variables
 
     --simulation time
     public final_sim_time: real;
-    public data_history: seq of (seq of char*real);
-    public str: seq of char;
+  
 
 operations
     public RobotArm: () ==> RobotArm
@@ -29,30 +28,10 @@ operations
 
         last_time := 0;
         final_sim_time := 0;
-        data_history := [];
-        str:= ""
+       
     );
 
-    public recordState : () ==> ()
-    recordState() == duration(0) (
-        data_history:= data_history ^ [mk_("Timestamp", time / 1E9)];
-        data_history:= data_history ^ [mk_("Env q", env_q)];
-        data_history:= data_history ^ [mk_("Env q vel", env_q_vel)];
-        data_history:= data_history ^ [mk_("Env q acc", env_q_acc)];
-    );
-    public rec: () ==> ()
-    rec() == duration(0) (
-        
-        str := str ^ "\nCurrent Real time of the Simulation: ";
-        str := str ^ VDMUtil`val2seq_of_char[real](time / 1E9);
-        str := str ^ "\nEnv q: ";
-        str := str ^ VDMUtil`val2seq_of_char[real](env_q);
-        str := str ^ "\nEnv q vel: ";
-        str := str ^ VDMUtil`val2seq_of_char[real](env_q_vel);
-        str := str ^ "\nEnv q acc: ";
-        str := str ^ VDMUtil`val2seq_of_char[real](env_q_acc);
-
-    );
+   
 
     -- Motor actuator
     public GetMotorTorque: real ==> ()
@@ -106,7 +85,7 @@ operations
             env_q_acc := env_motorTorque / I; -- Assuming uniform mass distribution arm length meter. a = t / i
             env_q_vel := env_q_vel + env_q_acc * delta;
             env_q := env_q + env_q_vel * delta;
-            --rec();
+           
     );
 
 thread
