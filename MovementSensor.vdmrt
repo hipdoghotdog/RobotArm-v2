@@ -1,0 +1,32 @@
+class MovementSensor
+
+    instance variables
+        public snr_q_vel : real;
+        public snr_q_acc : real;
+
+    operations
+        public MovementSensor : () ==> MovementSensor
+        MovementSensor() == (
+            snr_q_vel := 0;
+            snr_q_acc := 0;
+        );
+
+        -- velocity parts
+        public GetVelocity: () ==> ()
+        GetVelocity() == duration(1E8) (
+            snr_q_vel := MySystem`arm.GetVelocity();
+        );
+
+        public UpdateVelocity: () ==> ()
+        UpdateVelocity() == duration(1E8) (
+            GetVelocity();
+            MySystem`controller.UpdateCurrentVelocty(snr_q_vel);
+        );
+
+        thread
+            periodic(1E9, 0, 0, 0)(UpdateVelocity);
+
+        sync
+            
+            
+end MovementSensor
