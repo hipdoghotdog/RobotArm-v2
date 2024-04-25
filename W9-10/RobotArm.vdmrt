@@ -17,6 +17,7 @@ instance variables
     public env_q_acc: real; -- acceleration. rad/s^2
     public env_motorTorque: real; -- motor torque in Nm
     public last_time: real;
+    public motor_stop: bool;
 
     --simulation time
     public final_sim_time: real;
@@ -28,7 +29,7 @@ operations
         env_q_vel := 0; 
         env_q_acc := 0; 
         env_motorTorque := 0;
-
+        motor_stop := false;
         last_time := 0;
         final_sim_time := 0;
        
@@ -42,7 +43,12 @@ operations
 
     --public CreateEvent : () ==> ()
     --reateEvent() == (
-    --    if 
+    --    if len events > 0 then ( 
+    --      let mk_(stime,event,event_data) = hd events
+    --      in if stime <= time then (
+
+    --      ) 
+        --)
     --);
 
 
@@ -84,6 +90,11 @@ operations
         final_sim_time := t;
     );
 
+    public Stop: () ==> ()
+    Stop() == duration(1E8) (
+        motor_stop := true;
+    );
+
     public isFinished: () ==> ()
     isFinished() == skip;
 
@@ -98,11 +109,15 @@ operations
             dcl delta : real := (t - last_time);
 
             last_time := t;
-
+            if (motor_stop = false) then (
+                env_q_acc := env_motorTorque / I; -- Assuming uniform mass distribution arm length meter. a = t / i
+                env_q_vel := env_q_vel + env_q_acc * delta;
+                env_q := env_q + env_q_vel * delta;
+            ) else (
+                env_q_vel := 0;
+                env_q := env_q + env_q_vel * delta;
+            );
             -- Update movement values
-            env_q_acc := env_motorTorque / I; -- Assuming uniform mass distribution arm length meter. a = t / i
-            env_q_vel := env_q_vel + env_q_acc * delta;
-            env_q := env_q + env_q_vel * delta;
            
     );
 

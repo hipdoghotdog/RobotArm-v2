@@ -79,6 +79,8 @@ operations
             return true;
         );
     
+ 
+    
     
     public CalculateTorque: () ==> ()
     CalculateTorque() == duration(5E8) (
@@ -106,28 +108,39 @@ operations
         if (mode = <Normal>) then (
             if (EnsureSafeRange() = false) then (
                 mode := <Caution>;
-            ) else (ctl_motorTorque := (dynamicKp * errorPos) + (dynamicKd * errorDerivative);)
+            ) 
+            else (ctl_motorTorque := (dynamicKp * errorPos) + (dynamicKd * errorDerivative);)
         );
 
         if (mode = <Caution>) then (
             if (EnsureSafeRange() = true) then (
                  mode :=<Normal>;
                  ctl_motorTorque := (dynamicKp * errorPos) + (dynamicKd * errorDerivative);
-            ) else (ctl_motorTorque := (dynamicKp * errorPos) + (dynamicKd * errorDerivative);
-            ctl_motorTorque := ctl_motorTorque * 0.5);
-        );
+            ) 
+            else (ctl_motorTorque := (dynamicKp * errorPos) + (dynamicKd * errorDerivative);
+            
+                if (ctl_q >= N2 and ctl_motorTorque > 0)  then (
+                    ctl_motorTorque := ctl_motorTorque * 0.5;
+                ) elseif (ctl_q <= N1 and ctl_motorTorque < 0) then (
+                    ctl_motorTorque := ctl_motorTorque * 0.5;
+                );
+            );
 
         if (mode = <EmergencyStop>) then (
             ctl_motorTorque := 0;
+            MySystem`motorActuator.StopMotor();
         );
         
         prevError := errorPos;
         
         MySystem`recorder.CtlUpdate([ctl_q,ctl_q_vel,ctl_motorTorque]);
+        );
     );
-
+    
 sync
- 
+    mutex (CalculateTorque);
+
+
 thread
     periodic(1E9,0,0,0)(CalculateTorque);
 
