@@ -1,13 +1,16 @@
 class MotorActuator
-    
+    types
+        public MotorState = <Working> | <Failure>;
     instance variables
         public act_motorTorque : real;
+        public motor_state : MotorState;
 
 
     operations 
         public MotorActuator: () ==> MotorActuator
         MotorActuator() == (
             act_motorTorque := 0;
+            motor_state := <Working>;
         );
 
         public GetMotorTorque: () ==> ()
@@ -15,10 +18,22 @@ class MotorActuator
             act_motorTorque := MySystem`controller.GetCurrentMotorTorque();
         );
 
+        public MotorFailure: () ==> ()
+        MotorFailure() == duration(0) (
+            motor_state := <Failure>;
+        );
+        public MotorRepair: () ==> ()
+        MotorRepair() == duration(0) (
+            motor_state := <Working>;
+        );
+
         public UpdateMotorTorque: () ==> ()
         UpdateMotorTorque() == duration(1E8) (
             GetMotorTorque();
-            MySystem`arm.GetMotorTorque(act_motorTorque);
+            if (motor_state = <Working>) then (
+                MySystem`arm.GetMotorTorque(act_motorTorque);
+            ) else MySystem`arm.GetMotorTorque(0);
+            
         );
 
     thread

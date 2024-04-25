@@ -18,7 +18,11 @@ operations
     MySystem`controller.SetKd(0.2);
     MySystem`arm.set_sim_time(99E9); -- time 15 sek
     -- hejk
-   
+    MySystem`arm.AddEvent(0E9, <MotorFailure>,0);
+    MySystem`arm.AddEvent(20E9, <MotorRepair>,0);
+    MySystem`arm.AddEvent(50E9, <SensorFailure>, 0);
+    MySystem`arm.AddEvent(60E9, <SensorRepair>, 0);
+    
     start(MySystem`angleSensor);
     start(MySystem`motorActuator);
     start(MySystem`movementSensor);

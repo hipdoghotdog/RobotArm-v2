@@ -3,6 +3,8 @@ class RobotArm
 types
     public Angle = real inv N == N >= -0.2 and N <= 1.8; -- max angles for the arm
 
+    public Event = <MotorFailure> | <SensorFailure> | <MotorRepair> | <SensorRepair>;
+
 values 
     public r: real = 0.8; -- arm length
         public I: real = 2 * r * r; -- inertia
@@ -18,6 +20,7 @@ instance variables
     public final_sim_time: real;
     public data_history: seq of (seq of char*real);
     public str: seq of char;
+    public events: seq of (real * Event * real);
 
 operations
     public RobotArm: () ==> RobotArm
@@ -30,7 +33,8 @@ operations
         last_time := 0;
         final_sim_time := 0;
         data_history := [];
-        str:= ""
+        str:= "";
+        events := [];
     );
 
     public recordState : () ==> ()
@@ -98,7 +102,7 @@ operations
     Step() == duration(0) (
             dcl t : real := time / 1E9;
             dcl delta : real := (t - last_time);
-
+            CreateEvent();
             last_time := t;
 
             -- Update movement values
@@ -116,6 +120,31 @@ operations
                 (env_q := 1.8;
                 env_q_acc := 0;
                 env_q_vel := 0;);
+    );
+
+    public AddEvent : real * Event * real ==> ()
+    AddEvent (t, e, d) == duration(0) (
+        events := events ^ [mk_(t,e,d)];
+    );
+
+    public CreateEvent : () ==> ()
+    CreateEvent() == duration(0) (
+        if len events > 0 then (
+            let mk_(stime,event,event_data) = hd events
+            in if stime <= time then (
+                if (event = <MotorFailure>) then (
+                    MySystem`motorActuator.MotorFailure();
+                ) elseif (event = <MotorRepair>) then (
+                    MySystem`motorActuator.MotorRepair();
+                ) elseif (event = <SensorFailure>) then (
+                    MySystem`angleSensor.SensorFailure();
+                ) elseif (event = <SensorRepair>) then (
+                    MySystem`angleSensor.SensorRepair();
+                );
+                events := tl events;
+            )
+            
+        )
     );
 
 thread

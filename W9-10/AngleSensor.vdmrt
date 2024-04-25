@@ -1,23 +1,35 @@
 class AngleSensor
-
+    types
+        public SensorState = <Working> | <Failure>;
     instance variables
         public snr_q : real; -- sensor angle read
-
+        public snr_state : SensorState;
     operations
         public AngleSensor: () ==> AngleSensor
         AngleSensor() == (
             snr_q := 0.0;
+            snr_state := <Working>;
         );
 
         public GetAngle: () ==> ()
         GetAngle() == duration(1E8) (
             snr_q := MySystem`arm.GetCurrentPosition();
         );
+        public SensorFailure: () ==> ()
+        SensorFailure() == duration(1E8) (
+            snr_state := <Failure>;
+        );
+        public SensorRepair: () ==> ()
+        SensorRepair()  == duration(0) (
+            snr_state :=  <Working>;
+        );
 
         public UpdateAngle: () ==> ()
         UpdateAngle() == duration(1E8) (
             GetAngle();
-            MySystem`controller.UpdateCurrentPosition(snr_q);
+            if (snr_state = <Working>) then (
+                MySystem`controller.UpdateCurrentPosition(snr_q);
+            ) else skip;
         );
 
         thread
