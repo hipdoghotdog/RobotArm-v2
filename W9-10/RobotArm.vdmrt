@@ -3,9 +3,12 @@ class RobotArm
 types
     public Angle = real inv N == N >= -0.2 and N <= 1.8; -- max angles for the arm
 
+    -- environment events
+    public Event = <SensorFailure> | <ActuatorFailure>;
+    public Env_user_events = <RepositiongArm> | <SwitchingEndEffector>;
+
 values 
     public r: real = 0.8; -- arm length
-        public I: real = 2 * r * r; -- inertia
 
 instance variables
     public env_q : real; -- angle of joint. radians
@@ -13,11 +16,11 @@ instance variables
     public env_q_acc: real; -- acceleration. rad/s^2
     public env_motorTorque: real; -- motor torque in Nm
     public last_time: real;
+    public inertia: real;
 
     --simulation time
     public final_sim_time: real;
-  
-
+    
 operations
     public RobotArm: () ==> RobotArm
     RobotArm() == (
@@ -25,12 +28,16 @@ operations
         env_q_vel := 0; 
         env_q_acc := 0; 
         env_motorTorque := 0;
+        inertia := 0;
 
         last_time := 0;
         final_sim_time := 0;
        
     );
 
+    -- interia cal
+    public Inertia: () ==> 
+    Inertia()
    
 
     -- Motor actuator

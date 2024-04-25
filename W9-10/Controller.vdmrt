@@ -1,5 +1,9 @@
 class Controller
 
+types
+    public OperationMode = <Initialisation> | <Normal> | <Caution> | <EmergencyStop>;
+    public UserEvents = <TargetAngle> | <ShutdownCommand> | 
+
 values 
     public M1 : real = -0.2; -- max ranges
     public M2 : real = 1.8; 
@@ -14,6 +18,7 @@ instance variables
     public ctl_motorTorque : real;
     public kp: real := 0.1; -- proportional factor
     public kd: real := 0.01; -- derivative factor
+    public safe_angle: bool;
 
 operations
     public Controller : () ==> Controller
@@ -22,6 +27,8 @@ operations
         ctl_qt := 0;
         ctl_q_vel := 0;
         ctl_motorTorque := 0;
+        OperationMode := <Initialisation>;
+        safe_angle := true;
     );
 
     public SetTargetAngle: real ==> ()
@@ -51,15 +58,14 @@ operations
     );
     
     --! Controller logic operations
-    public EnsureSafeRange : () ==> ()
+    public EnsureSafeRange : () ==> bool
     EnsureSafeRange() == duration(1E8) (
-        if ctl_q >= M2 then (
-            
-            ctl_motorTorque := 0;
-        ) elseif ctl_q <= M1 then (
-            ctl_motorTorque := 0;
+        if ctl_q >= N2 or ctl_q <= N1 then (
+            return false;
+        ) else
+            return true;
         );
-    );
+    
     
     public CalculateTorque: () ==> ()
     CalculateTorque() == duration(5E8) (
@@ -69,6 +75,11 @@ operations
         dcl adjustFactor : real := if abs(ctl_qt - N1) < 0.2 or abs(N2 - ctl_qt) < 0.2 then 0.5 else 1;
         dcl dynamicKp : real := kp * (if adjustFactor = 0.5 then 0.5 else 1); 
         dcl dynamicKd : real := kd * (if adjustFactor = 0.5 then 2 else 1);
+
+        if (OperationMode = <Initialisation>) then (
+            ctl_motorTorque := 0;
+            safe_angle := EnsureSafeRange();
+        ) 
 
         -- calculate motor torque for the arm, and ensure safe angle
         ctl_motorTorque := (dynamicKp * errorPos) + (dynamicKd * errorDerivative);
