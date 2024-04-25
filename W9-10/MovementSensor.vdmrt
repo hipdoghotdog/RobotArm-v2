@@ -27,6 +27,6 @@ class MovementSensor
             periodic(1E9, 0, 0, 0)(UpdateVelocity);
 
         sync
-            
+            mutex(GetVelocity)
             
 end MovementSensor

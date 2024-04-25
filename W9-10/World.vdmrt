@@ -12,11 +12,11 @@ operations
 
     public Scenario1 : () ==> (bool)
     Scenario1() == (
-    MySystem`arm.SetCurrentPosition(1.5); -- Near upper safety limit
-    MySystem`controller.SetTargetAngle(1); -- Trying to move outside safety zone
+    MySystem`arm.SetCurrentPosition(1.5); 
+    MySystem`controller.SetTargetAngle(1);
     MySystem`controller.SetKp(0.15);
     MySystem`controller.SetKd(0.2);
-    MySystem`arm.set_sim_time(99E9); -- time 15 sek
+    MySystem`arm.set_sim_time(99E9); 
     
    
     start(MySystem`angleSensor);
@@ -38,11 +38,11 @@ operations
 
     public Scenario2 : () ==> (bool)
     Scenario2() == (
-    MySystem`arm.SetCurrentPosition(0.0); -- Near upper safety limit
-    MySystem`controller.SetTargetAngle(0.5); -- Trying to move outside safety zone
+    MySystem`arm.SetCurrentPosition(0.0); 
+    MySystem`controller.SetTargetAngle(0.5); 
     MySystem`controller.SetKp(0.1);
     MySystem`controller.SetKd(0.15);
-    MySystem`arm.set_sim_time(99E9); -- time 15 sek
+    MySystem`arm.set_sim_time(99E9); 
     
    
     start(MySystem`angleSensor);
