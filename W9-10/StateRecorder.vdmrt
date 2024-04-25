@@ -8,7 +8,7 @@ instance variables
     public ctl_q : real; -- sensor angle read
     public ctl_q_vel : real; -- sensor angle read
     public ctl_torque : real; -- sensor angle read
-
+    public ctl_mode : seq of char;
     public str : seq of char;
     public s : seq of (seq of char);
 
@@ -22,14 +22,16 @@ operations
         ctl_q := 0;
         ctl_q_vel := 0;
         ctl_torque := 0;
+        ctl_mode := "";
 
         str := "";
-        s := ["","","","",""];
+        s := ["","","","","",""];
         s(1) := s(1) ^ "Current Real time of the Simulation: ";
         s(2) := s(2) ^ "Env q: ";
         s(3) := s(3) ^ "Env q vel: ";
         s(4) := s(4) ^ "Ctl q: ";
         s(5) := s(5) ^ "Ctl q vel: ";
+        s(6) := s(6) ^ "Ctl mode: ";
     );
    
     public CtlUpdate: (seq of real) ==> ()
@@ -37,6 +39,7 @@ operations
         ctl_q := vals(1);
         ctl_q_vel := vals(2);
         ctl_torque := vals(3);
+        ctl_mode := MySystem`controller.RetMode();
     );
     public rec: () ==> ()
     rec() == duration(0) (
@@ -75,6 +78,7 @@ operations
         s(3) := s(3) ^ VDMUtil`val2seq_of_char[real](env_q_vel)^", ";
         s(4) := s(4) ^ VDMUtil`val2seq_of_char[real](ctl_q)^", ";
         s(5) := s(5) ^ VDMUtil`val2seq_of_char[real](ctl_q_vel)^", ";
+        s(6) := s(6) ^ ctl_mode ^ ", ";
 
     );
         

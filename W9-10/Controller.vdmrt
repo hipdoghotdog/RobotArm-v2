@@ -79,6 +79,16 @@ operations
         mode := <NormalMode>;
     );
 
+    public RetMode: () ==> seq of char
+    RetMode() == duration(0) (
+        dcl str : seq of char := "";
+        if mode = <NormalMode> then str := "NormalMode";
+        if mode = <CautionMode> then str := "CautionMode";
+        if mode = <EmergencyStop> then str := "EmergencyStop";
+
+        return str;
+    );
+
     public CalculateTorque: () ==> ()
     CalculateTorque() == duration(5E8) (
         dcl errorPos : real := ctl_qt - ctl_q;

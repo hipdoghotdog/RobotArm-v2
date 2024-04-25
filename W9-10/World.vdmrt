@@ -36,6 +36,7 @@ operations
     io.print("\n"^MySystem`recorder.s(3));
     io.print("\n"^MySystem`recorder.s(4));
     io.print("\n"^MySystem`recorder.s(5));
+    io.print("\n"^MySystem`recorder.s(6));
 
     return true;
     );
