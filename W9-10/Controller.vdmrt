@@ -1,8 +1,8 @@
 class Controller
 
-types
-    public OperationMode = <Initialisation> | <Normal> | <Caution> | <EmergencyStop>;
-    
+types 
+    public Mode = <EmergencyStop> | <NormalMode> | <CautionMode>
+
 values 
     public M1 : real = -0.2; -- max ranges
     public M2 : real = 1.8; 
@@ -17,9 +17,7 @@ instance variables
     public ctl_motorTorque : real;
     public kp: real := 0.1; -- proportional factor
     public kd: real := 0.01; -- derivative factor
-    public angle_flag: bool;
-    public target_flag: bool;
-    public mode : OperationMode;
+    public mode : Mode;
 
 operations
     public Controller : () ==> Controller
@@ -28,16 +26,12 @@ operations
         ctl_qt := 0;
         ctl_q_vel := 0;
         ctl_motorTorque := 0;
-        angle_flag := false;
-        target_flag := false;
-        mode := <Initialisation>;
-        
+        mode := <NormalMode>;
     );
 
     public SetTargetAngle: real ==> ()
     SetTargetAngle(qt) == duration(1E8) (
         ctl_qt := qt;
-        target_flag := true;
     );
     public SetKp: real ==> ()
     SetKp(k_p) == duration(1E8) (
@@ -50,7 +44,6 @@ operations
     public UpdateCurrentPosition : real ==> ()
     UpdateCurrentPosition(snr_q) == duration(1E8) (
         ctl_q := snr_q;
-        angle_flag := true;
     );
     public UpdateCurrentVelocty : real ==> ()
     UpdateCurrentVelocty(snr_vel) == duration(1E8) (
@@ -63,84 +56,52 @@ operations
     );
     
     --! Controller logic operations
-    public EnsureSafeRange : () ==> bool
-    EnsureSafeRange() == duration(1E8) (
-        if ctl_q >= N2 or ctl_q <= N1 then (
-            return false;
-        ) else
-            return true;
-        );
+    public ShutDown : () ==> ()
+    ShutDown() == duration(1E8) (
+        ctl_motorTorque := 0;
+    );
 
-    public EmergencyStopCheck: () ==> bool
-    EmergencyStopCheck() == duration(1E8) (
-        if ctl_q >= M2 or ctl_q <= M1 then (
-            return false;
-        ) else
-            return true;
-        );
-    
- 
-    
-    
+    public CarefulMode : () ==> ()
+    CarefulMode() == duration(1E8) (
+    if (ctl_q <= N1 and ctl_qt > ctl_q) or (ctl_q >= N2 and ctl_qt < ctl_q) then
+        ctl_motorTorque := ctl_motorTorque * 1 
+    else 
+        ctl_motorTorque := ctl_motorTorque * 0.3 
+);
+
+    public SetMode: () ==> ()
+    SetMode() == duration(0) (
+    if ctl_q < M1 or ctl_q > M2 then 
+        mode := <EmergencyStop>
+    elseif ctl_q < N1 or ctl_q > N2 then 
+        mode := <CautionMode>
+    else 
+        mode := <NormalMode>;
+    );
+
     public CalculateTorque: () ==> ()
     CalculateTorque() == duration(5E8) (
-        
         dcl errorPos : real := ctl_qt - ctl_q;
         dcl errorDerivative : real := (errorPos - prevError) / 1; 
         dcl adjustFactor : real := if abs(ctl_qt - N1) < 0.2 or abs(N2 - ctl_qt) < 0.2 then 0.5 else 1;
         dcl dynamicKp : real := kp * (if adjustFactor = 0.5 then 0.5 else 1); 
         dcl dynamicKd : real := kd * (if adjustFactor = 0.5 then 2 else 1);
 
-        if (EmergencyStopCheck() = false) then (
-            mode := <EmergencyStop>;
-        );
-
-        if (mode = <Initialisation>) then (
-            ctl_motorTorque := 0;
-
-
-            if (EnsureSafeRange() and target_flag and angle_flag) then (
-                mode := <Normal>;
-            )
-            elseif (target_flag and angle_flag) then mode := <Caution>;
-        );
-
-        if (mode = <Normal>) then (
-            if (EnsureSafeRange() = false) then (
-                mode := <Caution>;
-            ) 
-            else (ctl_motorTorque := (dynamicKp * errorPos) + (dynamicKd * errorDerivative);)
-        );
-
-        if (mode = <Caution>) then (
-            if (EnsureSafeRange() = true) then (
-                 mode :=<Normal>;
-                 ctl_motorTorque := (dynamicKp * errorPos) + (dynamicKd * errorDerivative);
-            ) 
-            else (ctl_motorTorque := (dynamicKp * errorPos) + (dynamicKd * errorDerivative);
-            
-                if (ctl_q >= N2 and ctl_motorTorque > 0)  then (
-                    ctl_motorTorque := ctl_motorTorque * 0.5;
-                ) elseif (ctl_q <= N1 and ctl_motorTorque < 0) then (
-                    ctl_motorTorque := ctl_motorTorque * 0.5;
-                );
-            );
-
-        if (mode = <EmergencyStop>) then (
-            ctl_motorTorque := 0;
-            MySystem`motorActuator.StopMotor();
-        );
+        SetMode();
+        if mode = <EmergencyStop> then ShutDown();
+        if mode = <CautionMode> then CarefulMode();
+        if mode = <NormalMode> then ctl_motorTorque := (dynamicKp * errorPos) + (dynamicKd * errorDerivative);
         
         prevError := errorPos;
-        
+        --MySystem`Motor.PassState([ctl_q,ctl_q_vel,ctl_motorTorque]);
         MySystem`recorder.CtlUpdate([ctl_q,ctl_q_vel,ctl_motorTorque]);
-        );
     );
-    
+
 sync
-    mutex (CalculateTorque);
-
-
+    mutex(CarefulMode);
+    mutex(ShutDown);
+    mutex(CalculateTorque);
+ 
 thread
     periodic(1E9,0,0,0)(CalculateTorque);
 

@@ -1,4 +1,4 @@
-class StateRecorder --Class responsible for recording state of the model
+class StateRecorder
 
 instance variables
     public env_q : real; --sensor angle read
@@ -9,6 +9,7 @@ instance variables
     public ctl_q_vel : real; -- sensor angle read
     public ctl_torque : real; -- sensor angle read
 
+    public str : seq of char;
     public s : seq of (seq of char);
 
 operations
@@ -22,7 +23,7 @@ operations
         ctl_q_vel := 0;
         ctl_torque := 0;
 
-        
+        str := "";
         s := ["","","","",""];
         s(1) := s(1) ^ "Current Real time of the Simulation: ";
         s(2) := s(2) ^ "Env q: ";
@@ -37,7 +38,31 @@ operations
         ctl_q_vel := vals(2);
         ctl_torque := vals(3);
     );
+    public rec: () ==> ()
+    rec() == duration(0) (
+        env_q := MySystem`arm.GetCurrentPosition();
+        env_q_vel := MySystem`arm.GetVelocity();
+        env_q_acc := MySystem`arm.GetCurrentAcceleration();
+        env_torque := MySystem`arm.GetCurrentMotorTorque();
+        
+        str := str ^ "\nCurrent Real time of the Simulation: ";
+        str := str ^ VDMUtil`val2seq_of_char[real](time / 1E9);
+        str := str ^ "\nEnv q: ";
+        str := str ^ VDMUtil`val2seq_of_char[real](env_q);
+        str := str ^ "\nEnv q vel: ";
+        str := str ^ VDMUtil`val2seq_of_char[real](env_q_vel);
+        --str := str ^ "\nEnv q acc: ";
+        --str := str ^ VDMUtil`val2seq_of_char[real](env_q_acc);
+        --str := str ^ "\nEnv motor torque: ";
+        --str := str ^ VDMUtil`val2seq_of_char[real](env_torque);
+        str := str ^ "\nCtl q: ";
+        str := str ^ VDMUtil`val2seq_of_char[real](ctl_q);
+        str := str ^ "\nCtl q vel: ";
+        str := str ^ VDMUtil`val2seq_of_char[real](ctl_q_vel);
+        --str := str ^ "\nCtl motor torque: ";
+        --str := str ^ VDMUtil`val2seq_of_char[real](ctl_torque);
 
+    );
     public rec2: () ==> ()
     rec2() == duration(0) (
         env_q := MySystem`arm.GetCurrentPosition();

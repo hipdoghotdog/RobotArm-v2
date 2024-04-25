@@ -3,13 +3,9 @@ class RobotArm
 types
     public Angle = real inv N == N >= -0.2 and N <= 1.8; -- max angles for the arm
 
-    -- environment events
-    public Event = <SensorFailure> | <ActuatorFailure>;
-    public Env_user_events = <RepositiongArm> | <SwitchingEndEffector> | <TargetAngle> | <ShutdownCommand>;
-
 values 
     public r: real = 0.8; -- arm length
-    public I: real = 2 * r * r; -- inertia
+        public I: real = 2 * r * r; -- inertia
 
 instance variables
     public env_q : real; -- angle of joint. radians
@@ -17,11 +13,12 @@ instance variables
     public env_q_acc: real; -- acceleration. rad/s^2
     public env_motorTorque: real; -- motor torque in Nm
     public last_time: real;
-    public motor_stop: bool;
 
     --simulation time
     public final_sim_time: real;
-    
+    public data_history: seq of (seq of char*real);
+    public str: seq of char;
+
 operations
     public RobotArm: () ==> RobotArm
     RobotArm() == (
@@ -29,35 +26,38 @@ operations
         env_q_vel := 0; 
         env_q_acc := 0; 
         env_motorTorque := 0;
-        motor_stop := false;
+
         last_time := 0;
         final_sim_time := 0;
-       
+        data_history := [];
+        str:= ""
     );
 
-    -- events
-    --public AddEvent : real * Event * int ==> ()
-    --AddEvent(t, e, d) == duration(0) (
-    --    events := events ^ [mk_(t,e,d)];
-    --);
-
-    --public CreateEvent : () ==> ()
-    --reateEvent() == (
-    --    if len events > 0 then ( 
-    --      let mk_(stime,event,event_data) = hd events
-    --      in if stime <= time then (
-
-    --      ) 
-        --)
-    --);
-
+    public recordState : () ==> ()
+    recordState() == duration(0) (
+        data_history:= data_history ^ [mk_("Timestamp", time / 1E9)];
+        data_history:= data_history ^ [mk_("Env q", env_q)];
+        data_history:= data_history ^ [mk_("Env q vel", env_q_vel)];
+        data_history:= data_history ^ [mk_("Env q acc", env_q_acc)];
+    );
+    public rec: () ==> ()
+    rec() == duration(0) (
+        
+        str := str ^ "\nCurrent Real time of the Simulation: ";
+        str := str ^ VDMUtil`val2seq_of_char[real](time / 1E9);
+        str := str ^ "\nEnv q: ";
+        str := str ^ VDMUtil`val2seq_of_char[real](env_q);
+        str := str ^ "\nEnv q vel: ";
+        str := str ^ VDMUtil`val2seq_of_char[real](env_q_vel);
+        str := str ^ "\nEnv q acc: ";
+        str := str ^ VDMUtil`val2seq_of_char[real](env_q_acc);
+    );
 
     -- Motor actuator
     public GetMotorTorque: real ==> ()
     GetMotorTorque(torque) == duration(0) (
         env_motorTorque := torque;
     );
-
     public GetCurrentMotorTorque: () ==> real
     GetCurrentMotorTorque() == duration(0) (
         return env_motorTorque;
@@ -90,17 +90,8 @@ operations
         final_sim_time := t;
     );
 
-    public Stop: () ==> ()
-    Stop() == duration(1E8) (
-        motor_stop := true;
-    );
-
     public isFinished: () ==> ()
     isFinished() == skip;
-
-
-
-
 
     -- step function
     public Step: () ==> ()
@@ -109,21 +100,26 @@ operations
             dcl delta : real := (t - last_time);
 
             last_time := t;
-            if (motor_stop = false) then (
-                env_q_acc := env_motorTorque / I; -- Assuming uniform mass distribution arm length meter. a = t / i
-                env_q_vel := env_q_vel + env_q_acc * delta;
-                env_q := env_q + env_q_vel * delta;
-            ) else (
-                env_q_vel := 0;
-                env_q := env_q + env_q_vel * delta;
-            );
+
             -- Update movement values
-           
+            env_q_acc := env_motorTorque / I; -- Assuming uniform mass distribution arm length meter. a = t / i
+            env_q_vel := env_q_vel + env_q_acc * delta;
+            env_q := env_q + env_q_vel * delta;
+            --rec();
+
+            -- For demonstrative purposes when reaching max limit angles!!
+            if env_q < -0.2 then 
+                (env_q := -0.2;
+                env_q_acc := 0;
+                env_q_vel := 0;);
+            if env_q > 1.8 then 
+                (env_q := 1.8;
+                env_q_acc := 0;
+                env_q_vel := 0;);
     );
 
 thread
     periodic(1E9,0,0,0)(Step);
-    --periodic(1E9, 0, 0, 0)(CreateEvent);
 
 sync
     mutex (GetCurrentPosition);

@@ -21,14 +21,9 @@ class MotorActuator
             MySystem`arm.GetMotorTorque(act_motorTorque);
         );
 
-        public StopMotor: () ==> ()
-        StopMotor() == duration(1E8)(
-            MySystem`arm.Stop();
-        );
-
     thread
         periodic(1E9, 0, 0, 0)(UpdateMotorTorque) -- calling each seonc
-        --periodic(periode,jitter,delay,offset)(operationName);
+      
     sync
         mutex(GetMotorTorque)
 

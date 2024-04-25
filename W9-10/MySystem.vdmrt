@@ -19,11 +19,11 @@ instance variables
     bus1 : BUS := new BUS (<FCFS>, 1E100, {cpu1, cpu2});
     bus2 : BUS := new BUS (<FCFS>, 1E100, {cpu1, cpu3});
     bus3 : BUS := new BUS (<FCFS>, 1E100, {cpu1, cpu4});
-    bus4 : BUS := new BUS (<FCFS>, 1E100, {cpu2, cpu6});
-    bus5 : BUS := new BUS (<FCFS>, 1E100, {cpu3, cpu6});
-    bus6 : BUS := new BUS (<FCFS>, 1E100, {cpu4, cpu6});
-    bus7 : BUS := new BUS (<FCFS>, 1E100, {cpu1, cpu5});
-    bus8 : BUS := new BUS (<FCFS>, 1E100, {cpu6, cpu5});
+    bus4 : BUS := new BUS (<FCFS>, 1E100, {cpu2, cpu5});
+    bus5 : BUS := new BUS (<FCFS>, 1E100, {cpu3, cpu5});
+    bus6 : BUS := new BUS (<FCFS>, 1E100, {cpu4, cpu5});
+    bus7 : BUS := new BUS (<FCFS>, 1E100, {cpu1, cpu6});
+    bus8 : BUS := new BUS (<FCFS>, 1E100, {cpu5, cpu6});
 
 operations
     public MySystem: () ==> MySystem
@@ -32,8 +32,8 @@ operations
         cpu2.deploy(angleSensor);
         cpu3.deploy(motorActuator);
         cpu4.deploy(movementSensor);
-        cpu5.deploy(recorder);
-        cpu6.deploy(controller);
+        cpu5.deploy(controller);
+        cpu6.deploy(recorder);
     );
 
 end MySystem    
