@@ -41,4 +41,34 @@ operations
     return true;
     );
 
+    public Scenario2 : () ==> (bool)
+    Scenario2() == (
+    MySystem`arm.SetCurrentPosition(1); -- Near upper safety limit
+    MySystem`controller.SetTargetAngle(0.5); -- Trying to move outside safety zone
+    MySystem`controller.SetKp(0.1);
+    MySystem`controller.SetKd(0.15);
+    MySystem`arm.set_sim_time(99E9); -- time 15 sek
+    -- hejk
+    MySystem`arm.AddEvent(10E9, <MotorFailure>,0);
+    MySystem`arm.AddEvent(20E9, <MotorRepair>,0);
+    MySystem`arm.AddEvent(50E9, <SensorFailure>, 0);
+    MySystem`arm.AddEvent(60E9, <SensorRepair>, 0);
+    
+    start(MySystem`angleSensor);
+    start(MySystem`motorActuator);
+    start(MySystem`movementSensor);
+    start(MySystem`controller);
+    start(MySystem`arm);
+    start(MySystem`recorder);
+
+    MySystem`arm.isFinished();
+    io.print(MySystem`recorder.s(1));
+    io.print("\n"^MySystem`recorder.s(2));
+    io.print("\n"^MySystem`recorder.s(3));
+    io.print("\n"^MySystem`recorder.s(4));
+    io.print("\n"^MySystem`recorder.s(5));
+    io.print("\n"^MySystem`recorder.s(6));
+
+    return true;
+    );
 end World 

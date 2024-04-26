@@ -153,6 +153,7 @@ thread
 sync
     mutex (GetCurrentPosition);
     mutex (GetMotorTorque);
+    mutex (CreateEvent);
 
     per isFinished => (time > final_sim_time);
     
